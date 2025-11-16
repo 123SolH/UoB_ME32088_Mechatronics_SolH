@@ -5,14 +5,13 @@ import numpy as np
 # This is a library to get access to time-related functionalities
 import time
 
-
 # Select the first camera (0) that is connected to the machine
 # in Laptops should be the build-in camera
 cap = cv2.VideoCapture(0)
 
-# Set the width and heigth of the camera to 640x480
-cap.set(3,640)
-cap.set(4,480)
+# Set the width and heigth of the camera to 1920x1080
+cap.set(3,1920)
+cap.set(4,1080)
 
 #Create two opencv named windows
 cv2.namedWindow("frame-image", cv2.WINDOW_AUTOSIZE)
@@ -44,7 +43,7 @@ while(True):
     end = time.perf_counter()
     
     # Print to console the exucution time in FPS (frames per second)
-    print ('{:4.1f}'.format(1/(end - start)))
+    #print ('{:4.1f}'.format(1/(end - start)))
 
     # If the button q is pressed in one of the windows 
     if cv2.waitKey(20) & 0xFF == ord('q'):
