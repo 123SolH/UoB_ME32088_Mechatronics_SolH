@@ -17,7 +17,7 @@ TCP_IP = "127.0.0.1"
 # This is the REMOTE port of the Server that we are sending the data to
 TCP_PORT = 25000
 
-# Create the socket for the UDP communication
+# Create the socket for the TCP communication
 s = socket.socket(socket.AF_INET,        # Family of addresses, in this case IP type 
                      socket.SOCK_STREAM)    # What protocol to use, in this case TCP (streamed communications)
 logging.info('Socket successfully created')

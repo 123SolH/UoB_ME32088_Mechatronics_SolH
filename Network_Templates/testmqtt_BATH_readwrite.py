@@ -1,11 +1,11 @@
 import paho.mqtt.client as mqtt # This is the library to do the MQTT communications
 import time # This is the library that will allow us to use the sleep function
 
-# The callback for when we connect to the rerver. The meaning of the return code (rc) can be found here:
+# The callback for when we connect to the server. The meaning of the return code (rc) can be found here:
 # https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html#_Toc3901079
-# A zero is good.
-# After we connect we subsribe to one (or more) topics in this case the topic number 1
-def on_connect(client,userdata,flags,rc):
+# Success (code 0) is good.
+# After we connect we subscribe to one (or more) topics in this case the topic TeamTopic/1
+def on_connect(client,userdata,flags,rc,properties):
     print ("Connected with result code "+str(rc))
     client.subscribe(MainTopic+"1")
 
@@ -14,13 +14,13 @@ def on_connect(client,userdata,flags,rc):
 # the expression str(int(msg.payload.rstrip(b'\x00'))) converts the message from the server to an integer and then a string for printing.
 # Specifically:
 #   msg.payload.rstrip(b'\x00') This is getting all the bytes from the server (should be 11 in our case) and removes bytes with the value \x00 from the right
-#   int() converts the remaining bytes into an integer, it threats them as a string
+#   int() converts the remaining bytes into an integer, it treats them as a string
 #   str() converts the integer into a string for the purpose of printing it. See below (l.56) for an alternative way to do this
 def on_message(client, userdata, msg):
     print(str(time.time())+" In topic: "+msg.topic+" the value was "+ str(int(msg.payload.rstrip(b'\x00'))))
 
 # Create the mqtt client object
-client = mqtt.Client()
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2) # VERSION2 is the callback format of paho-mqtt 2.x
 # Assign the function for the connection event
 client.on_connect = on_connect
 # Assign the function for the new message event
@@ -32,8 +32,8 @@ client.username_pw_set(***USERNAME***,password=***PASSWORD***)
 # Connect to the server using a specific port with a timeout delay (in seconds)
 client.connect(***SERVER***,***PORT***,60)
 
-# Create your main topic string. Everything else should be fields with values 1-8
-MainTopic = "TeamTopic"
+# Create your main topic string. The subtopics are numbers, e.g. TeamTopic/1, TeamTopic/5
+MainTopic = "TeamTopic/"
 
 # Start the client to enable the above events to happen
 client.loop_start()
@@ -46,14 +46,14 @@ while(1):
 
     # Start a try in case we have an error
     try:
-        # Every on half second
+        # Every one second
         time.sleep(1)
         
         # Publish the value (integer) as a string. All messages are strings
-        client.publish(MainTopic,str(val))
+        client.publish(MainTopic+"5",str(val))
 
         # Plot in the terminal what we just did
-        print("%s %d" % (MainTopic, val))
+        print("%s5 %d" % (MainTopic, val))
         val=val+1
     
     # Capture a KeyboardInterrupt, i.e. Ctrl-C in the terminal window

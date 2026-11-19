@@ -9,7 +9,7 @@ import time
 #     client.subscribe("$SYS/#")
 
 # This is a different function call based on this: http://www.steves-internet-guide.com/mqtt-python-callbacks/
-def on_connect(client,userdata,flags,rc):
+def on_connect(client,userdata,flags,rc,properties):
     print ("Connected with result code "+str(rc))
     #client.subscribe("$SYS/#")
     client.subscribe("TeamTopic")
@@ -19,7 +19,7 @@ def on_connect(client,userdata,flags,rc):
 def on_message(client, userdata, msg):
     print(str(time.time())+" "+msg.topic+" "+str(msg.payload))
 
-client = mqtt.Client()
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2) # VERSION2 is the callback format of paho-mqtt 2.x
 client.on_connect = on_connect
 client.on_message = on_message
 
