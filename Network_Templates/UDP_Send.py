@@ -17,9 +17,6 @@ UDP_PORT = 50001
 # This is the message. In this case it is a string 
 MESSAGE = "Hello, World!"
 
-# Toy example to show how to send a list of numbers as a string. You can use any data type you want, but you need to convert it to a string first.
-# For example, if you want to send a list of numbers, you can do the following
-
 # Print the values for confirmation
 print ("UDP target IP:", UDP_IP)
 print ("UDP target port:", UDP_PORT)
