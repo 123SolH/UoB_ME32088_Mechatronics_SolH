@@ -32,7 +32,7 @@ detector = aruco.ArucoDetector(aruco_dict, parameters)
 half = marker_size / 2
 marker_points = np.array([[-half, half, 0], [half, half, 0], [half, -half, 0], [-half, -half, 0]], dtype=np.float32)
 
-# Define a processing rate
+# Define a processing rate in milliseconds (e.g., 0.25 means 4 frames per second).
 processing_period = 0.25
 
 # Create two OpenCV named windows
