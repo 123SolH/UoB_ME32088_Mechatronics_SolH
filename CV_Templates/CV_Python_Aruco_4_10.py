@@ -1,7 +1,8 @@
 # This script is an entry point to the Aruco marker detection and pose estimation.
 # It uses the camera calibration values to estimate the pose of the markers.
 # The script will display the original image and the image with the detected markers and their pose.
-# It is using the OpenCV library 4.10+ which has the latest Aruco functions
+# It works with OpenCV 4.7 or newer, including OpenCV 5: it uses the ArucoDetector class and cv2.solvePnP
+# (the older aruco.detectMarkers and aruco.estimatePoseSingleMarkers functions do not exist in OpenCV 5)
 
 import cv2
 import cv2.aruco as aruco
@@ -15,9 +16,15 @@ CM=camera_calibration['CM'] #camera matrix
 dist_coef=camera_calibration['dist_coef']# distortion coefficients from the camera
 
 # Define the ArUco dictionary and parameters
-marker_size = 40
+marker_size = 40 # the real size of the printed marker in mm
 aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
 parameters = aruco.DetectorParameters()
+detector = aruco.ArucoDetector(aruco_dict, parameters)
+
+# The 3D position (in mm) of the 4 corners of a marker, in the marker's own coordinate system (origin in the centre).
+# The order is the same as the corners returned by the detector: top-left, top-right, bottom-right, bottom-left
+half = marker_size / 2
+marker_points = np.array([[-half, half, 0], [half, half, 0], [half, -half, 0], [-half, -half, 0]], dtype=np.float32)
 
 # Define a processing rate
 processing_period = 0.25
@@ -45,22 +52,23 @@ while True:
 
     # Convert frame to grayscale
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    cv2.imshow('gray-image', gray)
+    cv2.imshow('Gray', gray)
 
     # Detect markers
-    corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+    corners, ids, rejectedImgPoints = detector.detectMarkers(gray)
 
     # If markers are detected
-    if ids is not None:
+    # (when nothing is detected ids is None in OpenCV 4 but an empty array in OpenCV 5, so we check the corners)
+    if len(corners) > 0:
         # Draw detected markers
         frame = aruco.drawDetectedMarkers(frame, corners, ids)
 
-        # Estimate pose of each marker
-        rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, marker_size, CM, dist_coef)
-
-        for rvec, tvec in zip(rvecs, tvecs):
-            # Draw axis for each marker
-            frame = cv2.drawFrameAxes(frame, CM, dist_coef, rvec, tvec, 100)
+        # Estimate the pose of each marker from its 4 detected corners
+        for i in range(len(corners)):
+            ok, rvec, tvec = cv2.solvePnP(marker_points, corners[i], CM, dist_coef, flags=cv2.SOLVEPNP_IPPE_SQUARE)
+            if ok:
+                # Draw axis for each marker (axis length 10 mm)
+                frame = cv2.drawFrameAxes(frame, CM, dist_coef, rvec, tvec, 10)
 
     # Add the frame rate to the image
     cv2.putText(frame, f"CAMERA FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
