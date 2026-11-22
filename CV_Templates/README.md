@@ -21,6 +21,7 @@ These templates provide a foundation for computer vision projects including:
 ## Requirements
 
 Typical dependencies include:
-- OpenCV
-- NumPy
-- Jupyter (for notebooks)
+- OpenCV (`pip install opencv-contrib-python` for ArUco support)
+- NumPy and Matplotlib for numerical operations and plotting 
+(`pip install numpy matplotlib`)
+- Jupyter (`pip install pillow ipykernel` for notebook support)
