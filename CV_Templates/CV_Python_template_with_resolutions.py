@@ -1,3 +1,9 @@
+"""
+This script probes supported camera resolutions, then displays live color and grayscale frames.
+
+@author: ioannisgeorgilas
+"""
+
 # This is the vision library OpenCV
 import cv2
 # This is a library for mathematical functions for python (used later)

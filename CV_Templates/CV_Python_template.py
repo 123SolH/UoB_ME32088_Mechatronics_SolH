@@ -1,3 +1,9 @@
+"""
+This script captures camera frames, displays color and grayscale images, and reports the frame rate.
+
+@author: ioannisgeorgilas
+"""
+
 # This is the vision library OpenCV
 import cv2
 # This is a library for mathematical functions for python (used later)

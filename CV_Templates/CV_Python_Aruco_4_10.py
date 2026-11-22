@@ -1,8 +1,11 @@
-# This script is an entry point to the Aruco marker detection and pose estimation.
-# It uses the camera calibration values to estimate the pose of the markers.
-# The script will display the original image and the image with the detected markers and their pose.
-# It works with OpenCV 4.7 or newer, including OpenCV 5: it uses the ArucoDetector class and cv2.solvePnP
-# (the older aruco.detectMarkers and aruco.estimatePoseSingleMarkers functions do not exist in OpenCV 5)
+"""
+This script detects ArUco markers and estimates their poses using camera calibration values.
+It displays the original image and the image with detected markers and their poses.
+It requires OpenCV 4.7 or newer, including OpenCV 5, and uses ArucoDetector and cv2.solvePnP
+(the older aruco.detectMarkers and aruco.estimatePoseSingleMarkers functions do not exist in OpenCV 5).
+
+@author: ioannisgeorgilas
+"""
 
 import cv2
 import cv2.aruco as aruco
