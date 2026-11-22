@@ -6,4 +6,5 @@
 *.zip
 /Fritzing Schematics/**/*.png
 /Fritzing Schematics/**/*.svg
+/CV_Templates/.ipynb_checkpoints
 
