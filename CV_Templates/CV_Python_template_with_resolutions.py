@@ -29,7 +29,7 @@ def probe_resolutions(cap, candidates=None, wait=0.1):
     return supported
 
 # Select the first camera (0) that is connected to the machine
-# in Laptops should be the build-in camera
+# in Laptops should be the built-in camera
 cap = cv2.VideoCapture(0)
 
 # Probe before forcing other settings
@@ -37,7 +37,7 @@ print("Probing common resolutions...")
 supported = probe_resolutions(cap)
 print("Supported resolutions (exact matches):", supported)
 
-# Set the width and heigth of the camera to 1920x1080
+# Set the width and height of the camera to 1920x1080
 cap.set(3,1920)
 cap.set(4,1080)
 
@@ -45,7 +45,7 @@ cap.set(4,1080)
 cv2.namedWindow("frame-image", cv2.WINDOW_AUTOSIZE)
 cv2.namedWindow("gray-image", cv2.WINDOW_AUTOSIZE)
 
-#Position the windows next to eachother
+#Position the windows next to each other
 cv2.moveWindow("frame-image",0,100)
 cv2.moveWindow("gray-image",640,100)
 
@@ -71,7 +71,7 @@ while(True):
     end = time.perf_counter()
     
     # Print to console the exucution time in FPS (frames per second)
-    #print ('{:4.1f}'.format(1/(end - start)))
+    print ('{:4.1f}'.format(1/(end - start)))
 
     # If the button q is pressed in one of the windows 
     if cv2.waitKey(20) & 0xFF == ord('q'):
