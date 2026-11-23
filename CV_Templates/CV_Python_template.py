@@ -16,10 +16,13 @@ cap.set(4,1080)
 #Create two opencv named windows
 cv2.namedWindow("frame-image", cv2.WINDOW_AUTOSIZE)
 cv2.namedWindow("gray-image", cv2.WINDOW_AUTOSIZE)
+cv2.namedWindow("canny-image", cv2.WINDOW_AUTOSIZE)
 
 #Position the windows next to eachother
 cv2.moveWindow("frame-image",0,100)
 cv2.moveWindow("gray-image",640,100)
+cv2.moveWindow("canny-image",1280,100)
+
 
 # Execute this continuously
 while(True):
@@ -32,14 +35,16 @@ while(True):
     
     # Convert the image from the camera to Gray scale
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    
+    canny = cv2.Canny(gray,50,250)
     # Display the original frame in a window
     cv2.imshow('frame-image',frame)
+
 
     
     # Display the grey image in another window
     cv2.imshow('gray-image',gray)
-    
+    cv2.imshow('canny-image',canny)
+        
     # Stop the performance counter
     end = time.perf_counter()
     
