@@ -11,9 +11,12 @@ import logging
 import numpy as np
 # This is a library to get access to time-related functionalities
 import time
-
+import cv2.aruco as aruco 
 logging.basicConfig(level=logging.INFO)
 
+camera_calibration=np.load('Sample_Calibration.npz') 
+CM=camera_calibration['CM']
+dist_coef=camera_calibration['dist_coef']
 # Select the first camera (0) that is connected to the machine
 # in Laptops should be the built-in camera
 cap = cv2.VideoCapture(0)
@@ -40,7 +43,10 @@ cv2.namedWindow("canny-image", cv2.WINDOW_AUTOSIZE)
 cv2.moveWindow("frame-image",0,100)
 cv2.moveWindow("gray-image",640,100)
 cv2.moveWindow("canny-image",1280,100)
-
+marker_size = 40 
+aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50) 
+parameters = aruco.DetectorParameters() 
+detector = aruco.ArucoDetector(aruco_dict, parameters) 
 
 # Execute this continuously
 last_fps_log = time.perf_counter()
@@ -58,6 +64,15 @@ while(True):
     # Convert the image from the camera to Gray scale
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     canny = cv2.Canny(frame,50,250)
+    corners, ids, rejectedImgPoints = detector.detectMarkers(gray) 
+    out = aruco.drawDetectedMarkers(frame, corners, ids)
+
+    half = marker_size / 2 
+    marker_points = np.array([[-half, half, 0], [half, half, 0], [half, -half, 0], [-half, -half, 0]], dtype=np.float32) 
+    try: 
+        ok, rvec, tvec = cv2.solvePnP(marker_points, corners[0], CM, dist_coef, flags=cv2.SOLVEPNP_IPPE_SQUARE) 
+        out = cv2.drawFrameAxes(out, CM, dist_coef, rvec, tvec, 10) 
+    except: out = out
     # Display the original frame in a window
     cv2.imshow('frame-image',frame)
 
@@ -66,6 +81,7 @@ while(True):
     # Display the grey image in another window
     cv2.imshow('gray-image',gray)
     cv2.imshow('canny-image',canny)
+    cv2.imshow('aruco-image',out)
         
     # Stop the performance counter
     end = time.perf_counter()
