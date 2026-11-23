@@ -57,7 +57,7 @@ while(True):
     
     # Convert the image from the camera to Gray scale
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    canny = cv2.Canny(gray,50,250)
+    canny = cv2.Canny(frame,50,250)
     # Display the original frame in a window
     cv2.imshow('frame-image',frame)
 
