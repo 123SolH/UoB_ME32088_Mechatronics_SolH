@@ -55,11 +55,6 @@ aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
 parameters = aruco.DetectorParameters()
 detector = aruco.ArucoDetector(aruco_dict, parameters)
 
-# --- Laser Targeting Thresholds ---
-ERROR_THRESHOLD_MM = 40.0  # Easily change this value here (+/- mm)
-DESIRED_ID = 42  # Change your target marker ID here
-# ----------------------------------
-
 half = marker_size / 2
 marker_points = np.array([[-half, half, 0],
                           [half, half, 0],
