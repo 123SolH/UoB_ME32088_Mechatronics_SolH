@@ -22,11 +22,11 @@ camera_calibration = np.load(calib_path)
 CM = camera_calibration['CM']
 dist_coef = camera_calibration['dist_coef']
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 if not cap.isOpened():
-    logging.error("Could not open camera 1")
+    logging.error("Could not open camera 0")
     raise SystemExit(1)
-logging.info("Camera 1 opened")
+logging.info("Camera 0 opened")
 
 cap.set(3, 1920)
 cap.set(4, 1080)
