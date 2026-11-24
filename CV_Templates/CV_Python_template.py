@@ -69,48 +69,67 @@ udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 while True:
 
-    start = time.perf_counter()
+  start = time.perf_counter()
 
-    ret, frame = cap.read()
-    if not ret:
-        logging.error("Could not read a frame from camera 0")
-        break
+  ret, frame = cap.read()
+  if not ret:
+    logging.error("Could not read a frame from camera 0")
+    break
 
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    canny = cv2.Canny(frame, 50, 250)
-    corners, ids, rejectedImgPoints = detector.detectMarkers(gray)
-    out = aruco.drawDetectedMarkers(frame, corners, ids)
+  gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+  canny = cv2.Canny(frame, 50, 250)
+  corners, ids, rejectedImgPoints = detector.detectMarkers(gray)
+  out = aruco.drawDetectedMarkers(frame, corners, ids)
 
-    # ids is None when no marker is visible, so only estimate pose if one was found
-    if ids is not None and len(corners) > 0:
-        ok, rvec, tvec = cv2.solvePnP(marker_points, corners[0], CM, dist_coef,
-                                      flags=cv2.SOLVEPNP_IPPE_SQUARE)
-        if ok:
-            out = cv2.drawFrameAxes(out, CM, dist_coef, rvec, tvec, 10)
+  # Default values for every frame (assumes no fire unless conditions are met)
+  laser_command = 0
+  marker_id = -1
+  x_err = 0.0
+  y_err = 0.0
 
-            marker_id = int(ids.flatten()[0])
-            x_err = tvec[0][0]
-            y_err = tvec[1][0]
+  # ids is None when no marker is visible, so only estimate pose if one was found
+  if ids is not None and len(corners) > 0:
+    ok, rvec, tvec = cv2.solvePnP(
+        marker_points, corners[0], CM, dist_coef, flags=cv2.SOLVEPNP_IPPE_SQUARE
+    )
+    if ok:
+      out = cv2.drawFrameAxes(out, CM, dist_coef, rvec, tvec, 10)
 
-            if (
-                -ERROR_THRESHOLD_MM < x_err < ERROR_THRESHOLD_MM
-                and -ERROR_THRESHOLD_MM < y_err < ERROR_THRESHOLD_MM
-                and marker_id == DESIRED_ID
-            ):
-              laser_command = 1  # Fire laser
-            else:
-              laser_command = 0  # Do not fire
+      marker_id = int(ids.flatten()[0])
+      x_err = tvec[0][0]
+      y_err = tvec[1][0]
 
-            # Pack and send the 1-byte command
-            packet = struct.pack("b", laser_command)
-            udp_sock.sendto(packet, (PI_IP, PI_PORT))
+      # Check if within error bounds and matches desired ID
+      if (
+          -ERROR_THRESHOLD_MM < x_err < ERROR_THRESHOLD_MM
+          and -ERROR_THRESHOLD_MM < y_err < ERROR_THRESHOLD_MM
+          and marker_id == DESIRED_ID
+      ):
+        laser_command = 1  # Fire laser
 
-            print(
-                f"ID: {marker_id} | x: {x_err:.1f}, y: {y_err:.1f} |"
-                f" Threshold: ±{ERROR_THRESHOLD_MM}mm | Command: {laser_command}"
-            )
+  # Pack and send the 1-byte command EVERY frame (sends 0 by default, 1 when targeted)
+  packet = struct.pack("b", laser_command)
+  udp_sock.sendto(packet, (PI_IP, PI_PORT))
 
-        
+  print(
+      f"ID: {marker_id} | x: {x_err:.1f}, y: {y_err:.1f} |"
+      f" Threshold: ±{ERROR_THRESHOLD_MM}mm | Command: {laser_command}"
+  )
+
+  cv2.imshow("frame-image", frame)
+  cv2.imshow("gray-image", gray)
+  cv2.imshow("canny-image", canny)
+  cv2.imshow("aruco-image", out)
+
+  end = time.perf_counter()
+
+  if end - last_fps_log >= 1.0:
+    logging.info("Camera FPS: %.2f", 1 / (end - start))
+    last_fps_log = end
+
+  if cv2.waitKey(20) & 0xFF == ord("q"):
+    break
+
 
 
     cv2.imshow('frame-image', frame)
