@@ -15,6 +15,11 @@ logging.basicConfig(level=logging.INFO)
 
 import os
 
+# --- Laser Targeting Thresholds ---
+ERROR_THRESHOLD_MM = 40.0  # Easily change this value here (+/- mm)
+DESIRED_ID = 35  # Change your target marker ID here
+# ----------------------------------
+
 script_dir = os.path.dirname(os.path.abspath(__file__))
 calib_path = os.path.join(script_dir, 'Sample_Calibration.npz')
 
@@ -50,6 +55,11 @@ aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
 parameters = aruco.DetectorParameters()
 detector = aruco.ArucoDetector(aruco_dict, parameters)
 
+# --- Laser Targeting Thresholds ---
+ERROR_THRESHOLD_MM = 40.0  # Easily change this value here (+/- mm)
+DESIRED_ID = 42  # Change your target marker ID here
+# ----------------------------------
+
 half = marker_size / 2
 marker_points = np.array([[-half, half, 0],
                           [half, half, 0],
@@ -83,26 +93,30 @@ while True:
         if ok:
             out = cv2.drawFrameAxes(out, CM, dist_coef, rvec, tvec, 10)
 
-            marker_id = ids.flatten()[0]   # id of the first visible marker
-            x = tvec[0][0]                 # mm
-            y = tvec[1][0]                 # mm
-            z = tvec[2][0]                 # mm
-
-            # Flatten numpy arrays
-            r_flat = rvec.flatten()
-            t_flat = tvec.flatten()
             marker_id = int(ids.flatten()[0])
+            x_err = tvec[0][0]
+            y_err = tvec[1][0]
 
-            # Pack data into a binary byte structure:
-            # 'i' = 4-byte integer (Marker ID)
-            # '6f' = six 4-byte floats (3 for rvec, 3 for tvec)
-            packet = struct.pack("i6f", marker_id, r_flat[0], r_flat[1], r_flat[2], t_flat[0], t_flat[1], t_flat[2] )
+            if (
+                -ERROR_THRESHOLD_MM < x_err < ERROR_THRESHOLD_MM
+                and -ERROR_THRESHOLD_MM < y_err < ERROR_THRESHOLD_MM
+                and marker_id == DESIRED_ID
+            ):
+              laser_command = 1  # Fire laser
+            else:
+              laser_command = 0  # Do not fire
 
+            # Pack and send the 1-byte command
+            packet = struct.pack("b", laser_command)
             udp_sock.sendto(packet, (PI_IP, PI_PORT))
 
+            print(
+                f"ID: {marker_id} | x: {x_err:.1f}, y: {y_err:.1f} |"
+                f" Threshold: ±{ERROR_THRESHOLD_MM}mm | Command: {laser_command}"
+            )
 
-            print(f"Marker ID: {marker_id} | tvec (mm): "
-                  f"x = {x:.1f}, y = {y:.1f}, z = {z:.1f}")
+        
+
 
     cv2.imshow('frame-image', frame)
     cv2.imshow('gray-image', gray)
