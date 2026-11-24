@@ -4,7 +4,8 @@ estimates their pose, and reports the frame rate.
 
 @author: ioannisgeorgilas
 """
-
+import socket
+import struct
 import cv2
 import logging
 import numpy as np
@@ -56,6 +57,11 @@ marker_points = np.array([[-half, half, 0],
                           [-half, -half, 0]], dtype=np.float32)
 
 last_fps_log = time.perf_counter()
+
+PI_IP = "138.38.229.206"  # Raspberry Pi IP address
+PI_PORT = 9000
+udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
 while True:
 
     start = time.perf_counter()
@@ -81,6 +87,20 @@ while True:
             x = tvec[0][0]                 # mm
             y = tvec[1][0]                 # mm
             z = tvec[2][0]                 # mm
+
+            # Flatten numpy arrays
+            r_flat = rvec.flatten()
+            t_flat = tvec.flatten()
+            marker_id = int(ids.flatten()[0])
+
+            # Pack data into a binary byte structure:
+            # 'i' = 4-byte integer (Marker ID)
+            # '6f' = six 4-byte floats (3 for rvec, 3 for tvec)
+            packet = struct.pack("i6f", marker_id, r_flat[0], r_flat[1], r_flat[2], t_flat[0], t_flat[1], t_flat[2] )
+
+            udp_sock.sendto(packet, (PI_IP, PI_PORT))
+
+
             print(f"Marker ID: {marker_id} | tvec (mm): "
                   f"x = {x:.1f}, y = {y:.1f}, z = {z:.1f}")
 
