@@ -27,11 +27,11 @@ camera_calibration = np.load(calib_path)
 CM = camera_calibration['CM']
 dist_coef = camera_calibration['dist_coef']
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 if not cap.isOpened():
-    logging.error("Could not open camera 0")
+    logging.error("Could not open camera 1")
     raise SystemExit(1)
-logging.info("Camera 0 opened")
+logging.info("Camera 1 opened")
 
 cap.set(3, 1920)
 cap.set(4, 1080)
@@ -73,7 +73,7 @@ while True:
 
   ret, frame = cap.read()
   if not ret:
-    logging.error("Could not read a frame from camera 0")
+    logging.error("Could not read a frame from camera 1")
     break
 
   gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
