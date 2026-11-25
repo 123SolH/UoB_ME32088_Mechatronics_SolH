@@ -16,8 +16,10 @@ logging.basicConfig(level=logging.INFO)
 import os
 
 # --- Laser Targeting Thresholds ---
-ERROR_THRESHOLD_MM = 40.0  # Easily change this value here (+/- mm)
-DESIRED_ID = 35  # Change your target marker ID here
+X_MIN_MM = 100.0      # Min X bound for fixed shift
+X_MAX_MM = 130.0      # Max X bound for fixed shift
+Y_THRESHOLD_MM = 40.0  # Y threshold (+/- mm)
+DESIRED_ID = 35        # Change your target marker ID here
 # ----------------------------------
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -63,7 +65,7 @@ marker_points = np.array([[-half, half, 0],
 
 last_fps_log = time.perf_counter()
 
-PI_IP = "138.38.229.206"  # Raspberry Pi IP address
+PI_IP = "138.38.229.102"  # Raspberry Pi IP address
 PI_PORT = 9000
 udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -100,22 +102,24 @@ while True:
       y_err = tvec[1][0]
 
       # Check if within error bounds and matches desired ID
-      if (
-          -ERROR_THRESHOLD_MM < x_err < ERROR_THRESHOLD_MM
-          and -ERROR_THRESHOLD_MM < y_err < ERROR_THRESHOLD_MM
-          and marker_id == DESIRED_ID
-      ):
-        laser_command = 1  # Fire laser
+      # Check if within individual X and Y bounds and matches desired ID
+    # Check if within the shifted X range, Y bounds, and matches desired ID
+    if (
+                X_MIN_MM < x_err < X_MAX_MM
+                and -Y_THRESHOLD_MM < y_err < Y_THRESHOLD_MM
+                and marker_id == DESIRED_ID
+            ):
+              laser_command = 1  # Fire laser
 
   # Pack and send the 1-byte command EVERY frame (sends 0 by default, 1 when targeted)
   packet = struct.pack("b", laser_command)
   udp_sock.sendto(packet, (PI_IP, PI_PORT))
 
   print(
-      f"ID: {marker_id} | x: {x_err:.1f}, y: {y_err:.1f} |"
-      f" Threshold: ±{ERROR_THRESHOLD_MM}mm | Command: {laser_command}"
-  )
-
+        f"ID: {marker_id} | x: {x_err:.1f}, y: {y_err:.1f} | "
+        f"X-Range: [{X_MIN_MM}, {X_MAX_MM}]mm, Y-Thresh: ±{Y_THRESHOLD_MM}mm | Command: {laser_command}"
+    )
+  
   cv2.imshow("frame-image", frame)
   cv2.imshow("gray-image", gray)
   cv2.imshow("canny-image", canny)
